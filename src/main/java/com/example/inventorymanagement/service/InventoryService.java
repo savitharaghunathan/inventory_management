@@ -4,34 +4,38 @@ import com.enterprise.audit.logging.config.AuditConfiguration;
 import com.enterprise.audit.logging.exception.AuditLoggingException;
 import com.enterprise.audit.logging.model.AuditEvent;
 import com.enterprise.audit.logging.model.AuditResult;
-import com.enterprise.audit.logging.service.FileSystemAuditLogger;
+import com.enterprise.audit.logging.service.StreamableAuditLogger;
 import com.example.inventorymanagement.model.InventoryItem;
 import com.example.inventorymanagement.model.InventoryRequest;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Service layer for inventory management with audit logging.
+ * Service layer for inventory management with audit logging v2.
  */
 @Service
 public class InventoryService {
     
-    private FileSystemAuditLogger auditLogger;
+    private StreamableAuditLogger auditLogger;
     private final Map<String, InventoryItem> inventory = new ConcurrentHashMap<>();
     
     @PostConstruct
     public void init() throws AuditLoggingException {
-        // Initialize audit logger
-        AuditConfiguration config = new AuditConfiguration();
-        config.setLogDirectory("./inventory-audit-logs");
-        config.setAutoCreateDirectory(true);
-        auditLogger = new FileSystemAuditLogger(config);
+        // Initialize audit logger with environment-based configuration (only if not already set)
+        if (auditLogger == null) {
+            AuditConfiguration config = new AuditConfiguration();
+            config.setStreamHost(System.getenv().getOrDefault("AUDIT_STREAM_HOST", "localhost"));
+            config.setStreamPort(Integer.parseInt(System.getenv().getOrDefault("AUDIT_STREAM_PORT", "5000")));
+            config.setStreamProtocol(System.getenv().getOrDefault("AUDIT_STREAM_PROTOCOL", "tcp"));
+            auditLogger = new StreamableAuditLogger(config);
+        }
         
         // Initialize with some sample inventory
         initializeSampleInventory();
@@ -59,16 +63,29 @@ public class InventoryService {
         int quantity = request.getQuantity();
         String userId = request.getUserId();
         String reason = request.getReason();
+        String sessionId = UUID.randomUUID().toString();
+        String correlationId = UUID.randomUUID().toString();
         
         InventoryItem item = inventory.get(itemId);
         if (item == null) {
             // Item doesn't exist - log failure
-            auditLogger.logFailure(
+            AuditEvent failureEvent = new AuditEvent(
+                Instant.now(),
                 "INVENTORY_ADD",
+                userId,
+                sessionId,
+                "InventoryManagement",
+                "InventoryService",
                 "ADD",
                 "inventory/" + itemId,
-                "Item not found: " + itemId
+                AuditResult.FAILURE,
+                "Item not found: " + itemId,
+                null,
+                correlationId,
+                null,
+                null
             );
+            auditLogger.logEventAsync(failureEvent);
             throw new IllegalArgumentException("Item not found: " + itemId);
         }
         
@@ -84,21 +101,24 @@ public class InventoryService {
         details.put("new_quantity", item.getQuantity());
         details.put("reason", reason);
         
-        AuditEvent auditEvent = AuditEvent.builder()
-                .eventType("INVENTORY_ADD")
-                .userId(userId)
-                .sessionId(UUID.randomUUID().toString())
-                .application("InventoryManagement")
-                .component("InventoryService")
-                .action("ADD")
-                .resource("inventory/" + itemId)
-                .result(AuditResult.SUCCESS)
-                .message("Added " + quantity + " units of " + item.getName())
-                .details(details)
-                .correlationId(UUID.randomUUID().toString())
-                .build();
+        AuditEvent auditEvent = new AuditEvent(
+            Instant.now(),
+            "INVENTORY_ADD",
+            userId,
+            sessionId,
+            "InventoryManagement",
+            "InventoryService",
+            "ADD",
+            "inventory/" + itemId,
+            AuditResult.SUCCESS,
+            "Added " + quantity + " units of " + item.getName(),
+            details,
+            correlationId,
+            null,
+            null
+        );
         
-        auditLogger.logEvent(auditEvent);
+        auditLogger.logEventAsync(auditEvent);
         
         return item;
     }
@@ -111,27 +131,51 @@ public class InventoryService {
         int quantity = request.getQuantity();
         String userId = request.getUserId();
         String reason = request.getReason();
+        String sessionId = UUID.randomUUID().toString();
+        String correlationId = UUID.randomUUID().toString();
         
         InventoryItem item = inventory.get(itemId);
         if (item == null) {
             // Item doesn't exist - log failure
-            auditLogger.logFailure(
+            AuditEvent failureEvent = new AuditEvent(
+                Instant.now(),
                 "INVENTORY_REMOVE",
+                userId,
+                sessionId,
+                "InventoryManagement",
+                "InventoryService",
                 "REMOVE",
                 "inventory/" + itemId,
-                "Item not found: " + itemId
+                AuditResult.FAILURE,
+                "Item not found: " + itemId,
+                null,
+                correlationId,
+                null,
+                null
             );
+            auditLogger.logEventAsync(failureEvent);
             throw new IllegalArgumentException("Item not found: " + itemId);
         }
         
         if (item.getQuantity() < quantity) {
             // Insufficient quantity - log failure
-            auditLogger.logFailure(
+            AuditEvent failureEvent = new AuditEvent(
+                Instant.now(),
                 "INVENTORY_REMOVE",
+                userId,
+                sessionId,
+                "InventoryManagement",
+                "InventoryService",
                 "REMOVE",
                 "inventory/" + itemId,
-                "Insufficient quantity. Available: " + item.getQuantity() + ", Requested: " + quantity
+                AuditResult.FAILURE,
+                "Insufficient quantity. Available: " + item.getQuantity() + ", Requested: " + quantity,
+                null,
+                correlationId,
+                null,
+                null
             );
+            auditLogger.logEventAsync(failureEvent);
             throw new IllegalArgumentException("Insufficient quantity. Available: " + item.getQuantity() + ", Requested: " + quantity);
         }
         
@@ -147,21 +191,24 @@ public class InventoryService {
         details.put("new_quantity", item.getQuantity());
         details.put("reason", reason);
         
-        AuditEvent auditEvent = AuditEvent.builder()
-                .eventType("INVENTORY_REMOVE")
-                .userId(userId)
-                .sessionId(UUID.randomUUID().toString())
-                .application("InventoryManagement")
-                .component("InventoryService")
-                .action("REMOVE")
-                .resource("inventory/" + itemId)
-                .result(AuditResult.SUCCESS)
-                .message("Removed " + quantity + " units of " + item.getName())
-                .details(details)
-                .correlationId(UUID.randomUUID().toString())
-                .build();
+        AuditEvent auditEvent = new AuditEvent(
+            Instant.now(),
+            "INVENTORY_REMOVE",
+            userId,
+            sessionId,
+            "InventoryManagement",
+            "InventoryService",
+            "REMOVE",
+            "inventory/" + itemId,
+            AuditResult.SUCCESS,
+            "Removed " + quantity + " units of " + item.getName(),
+            details,
+            correlationId,
+            null,
+            null
+        );
         
-        auditLogger.logEvent(auditEvent);
+        auditLogger.logEventAsync(auditEvent);
         
         return item;
     }
@@ -170,26 +217,51 @@ public class InventoryService {
      * Get inventory item details.
      */
     public InventoryItem getInventory(String itemId, String userId) throws AuditLoggingException {
+        String sessionId = UUID.randomUUID().toString();
+        String correlationId = UUID.randomUUID().toString();
+        
         InventoryItem item = inventory.get(itemId);
         
         if (item == null) {
             // Item not found - log failure
-            auditLogger.logFailure(
+            AuditEvent failureEvent = new AuditEvent(
+                Instant.now(),
                 "INVENTORY_VIEW",
+                userId,
+                sessionId,
+                "InventoryManagement",
+                "InventoryService",
                 "VIEW",
                 "inventory/" + itemId,
-                "Item not found: " + itemId
+                AuditResult.FAILURE,
+                "Item not found: " + itemId,
+                null,
+                correlationId,
+                null,
+                null
             );
+            auditLogger.logEventAsync(failureEvent);
             throw new IllegalArgumentException("Item not found: " + itemId);
         }
         
         // Log successful view
-        auditLogger.logSuccess(
+        AuditEvent successEvent = new AuditEvent(
+            Instant.now(),
             "INVENTORY_VIEW",
+            userId,
+            sessionId,
+            "InventoryManagement",
+            "InventoryService",
             "VIEW",
             "inventory/" + itemId,
-            "User " + userId + " viewed item: " + item.getName()
+            AuditResult.SUCCESS,
+            "User " + userId + " viewed item: " + item.getName(),
+            null,
+            correlationId,
+            null,
+            null
         );
+        auditLogger.logEventAsync(successEvent);
         
         return item;
     }
@@ -198,14 +270,35 @@ public class InventoryService {
      * Get all inventory items.
      */
     public Map<String, InventoryItem> getAllInventory(String userId) throws AuditLoggingException {
+        String sessionId = UUID.randomUUID().toString();
+        String correlationId = UUID.randomUUID().toString();
+        
         // Log successful view of all inventory
-        auditLogger.logSuccess(
+        AuditEvent successEvent = new AuditEvent(
+            Instant.now(),
             "INVENTORY_VIEW_ALL",
+            userId,
+            sessionId,
+            "InventoryManagement",
+            "InventoryService",
             "VIEW_ALL",
             "inventory",
-            "User " + userId + " viewed all inventory items"
+            AuditResult.SUCCESS,
+            "User " + userId + " viewed all inventory items",
+            null,
+            correlationId,
+            null,
+            null
         );
+        auditLogger.logEventAsync(successEvent);
         
         return new HashMap<>(inventory);
+    }
+    
+    /**
+     * Setter for audit logger (used in tests)
+     */
+    public void setAuditLogger(StreamableAuditLogger auditLogger) {
+        this.auditLogger = auditLogger;
     }
 } 
