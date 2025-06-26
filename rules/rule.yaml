@@ -18,7 +18,7 @@
   when:
     java.referenced:
       pattern: com.enterprise.audit.logging.model.AuditEvent.builder
-      location: METHOD
+      location: METHOD_CALL
   message: The `AuditEvent.builder()` pattern is deprecated. Instantiate the `AuditEvent` record directly (e.g. `new AuditEvent(...)`).
   labels:
     - konveyor.io/source=openjdk8
@@ -41,8 +41,8 @@
   category: mandatory
   when:
     java.referenced:
-      pattern: com.enterprise.audit.logging.service.AuditLogger.logEvent
-      location: METHOD
+      pattern: com.enterprise.audit.logging.service.FileSystemAuditLogger.logEvent
+      location: METHOD_CALL
   message: The synchronous `logEvent(event)` method should be replaced. Use the non-blocking `logEventAsync(event)` for better performance.
   labels:
     - konveyor.io/source=openjdk8
@@ -54,11 +54,11 @@
   when:
     or:
       - java.referenced:
-          pattern: com.enterprise.audit.logging.service.AuditLogger.logSuccess
-          location: METHOD
+          pattern: com.enterprise.audit.logging.service.FileSystemAuditLogger.logSuccess
+          location: METHOD_CALL
       - java.referenced:
-          pattern: com.enterprise.audit.logging.service.AuditLogger.logFailure
-          location: METHOD
+          pattern: com.enterprise.audit.logging.service.FileSystemAuditLogger.logFailure
+          location: METHOD_CALL
   message: Legacy convenience methods (logSuccess, logFailure) are removed. Construct a full `AuditEvent` record and use logEventAsync instead.
   labels:
     - konveyor.io/source=openjdk8
