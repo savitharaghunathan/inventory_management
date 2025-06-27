@@ -20,7 +20,7 @@
   when:
     java.referenced:
       pattern: com.enterprise.audit.logging.model.AuditEvent.builder
-      location: METHOD_CALL
+      location: IMPORT
   message: The `AuditEvent.builder()` pattern is deprecated. Instantiate the `AuditEvent` record directly (e.g. `new AuditEvent(...)`).
   labels:
     - konveyor.io/source=openjdk8
