@@ -17,7 +17,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Service layer for inventory management with audit logging.
+ * Service layer for medical device inventory management with audit logging.
  */
 @Service
 public class InventoryService {
@@ -29,12 +29,12 @@ public class InventoryService {
     public void init() throws AuditLoggingException {
         // Initialize audit logger
         AuditConfiguration config = new AuditConfiguration();
-        config.setLogDirectory("./inventory-audit-logs");
+        config.setLogDirectory("./device-inventory-audit-logs");
         config.setAutoCreateDirectory(true);
         auditLogger = new FileSystemAuditLogger(config);
         
-        // Initialize with some sample inventory
-        initializeSampleInventory();
+        // Initialize with some sample medical device inventory
+        initializeSampleMedicalDevices();
     }
     
     @PreDestroy
@@ -44,38 +44,39 @@ public class InventoryService {
         }
     }
     
-    private void initializeSampleInventory() {
-        inventory.put("LAPTOP-001", new InventoryItem("LAPTOP-001", "Dell XPS 13", 5, "Electronics", "Warehouse A"));
-        inventory.put("MOUSE-001", new InventoryItem("MOUSE-001", "Wireless Mouse", 20, "Electronics", "Warehouse B"));
-        inventory.put("DESK-001", new InventoryItem("DESK-001", "Standing Desk", 3, "Furniture", "Warehouse A"));
-        inventory.put("CHAIR-001", new InventoryItem("CHAIR-001", "Ergonomic Chair", 8, "Furniture", "Warehouse B"));
+    private void initializeSampleMedicalDevices() {
+        inventory.put("VENT-001", new InventoryItem("VENT-001", "Ventilator", 3, "Respiratory", "ICU Ward A", "Philips", "V60", "2025-12-31", "Available"));
+        inventory.put("MONITOR-001", new InventoryItem("MONITOR-001", "Patient Monitor", 8, "Monitoring", "ER Department", "GE Healthcare", "B650", "2026-06-30", "Available"));
+        inventory.put("DEFIB-001", new InventoryItem("DEFIB-001", "Defibrillator", 5, "Emergency", "Emergency Room", "Zoll", "X Series", "2025-09-15", "Available"));
+        inventory.put("PUMP-001", new InventoryItem("PUMP-001", "Infusion Pump", 12, "Infusion", "Med-Surg Unit", "Baxter", "Sigma Spectrum", "2026-03-20", "Available"));
+        inventory.put("XRAY-001", new InventoryItem("XRAY-001", "X-Ray Machine", 2, "Imaging", "Radiology", "Siemens", "Ysio Max", "2027-01-10", "Available"));
     }
     
     /**
-     * Add items to inventory (restock).
+     * Add medical devices to inventory (restock).
      */
     public InventoryItem addInventory(InventoryRequest request) throws AuditLoggingException {
-        String itemId = request.getItemId();
+        String deviceId = request.getDeviceId();
         int quantity = request.getQuantity();
         String userId = request.getUserId();
         String reason = request.getReason();
         
-        InventoryItem item = inventory.get(itemId);
+        InventoryItem item = inventory.get(deviceId);
         if (item == null) {
-            // Item doesn't exist - log failure
+            // Device doesn't exist - log failure
             auditLogger.logFailure(
-                "INVENTORY_ADD",
+                "MEDICAL_DEVICE_ADD",
                 "ADD",
-                "inventory/" + itemId,
-                "Item not found: " + itemId
+                "medical-devices/" + deviceId,
+                "Medical device not found: " + deviceId
             );
-            throw new IllegalArgumentException("Item not found: " + itemId);
+            throw new IllegalArgumentException("Medical device not found: " + deviceId);
         }
         
         // Update quantity
         int oldQuantity = item.getQuantity();
         item.setQuantity(oldQuantity + quantity);
-        inventory.put(itemId, item);
+        inventory.put(deviceId, item);
         
         // Log successful addition
         Map<String, Object> details = new HashMap<>();
@@ -83,15 +84,17 @@ public class InventoryService {
         details.put("added_quantity", quantity);
         details.put("new_quantity", item.getQuantity());
         details.put("reason", reason);
+        details.put("patient_id", request.getPatientId());
+        details.put("department", request.getDepartment());
         
         AuditEvent auditEvent = AuditEvent.builder()
-                .eventType("INVENTORY_ADD")
+                .eventType("MEDICAL_DEVICE_ADD")
                 .userId(userId)
                 .sessionId(UUID.randomUUID().toString())
-                .application("InventoryManagement")
+                .application("MedicalDeviceInventory")
                 .component("InventoryService")
                 .action("ADD")
-                .resource("inventory/" + itemId)
+                .resource("medical-devices/" + deviceId)
                 .result(AuditResult.SUCCESS)
                 .message("Added " + quantity + " units of " + item.getName())
                 .details(details)
@@ -104,32 +107,32 @@ public class InventoryService {
     }
     
     /**
-     * Remove items from inventory (checkout/consume).
+     * Remove medical devices from inventory (checkout/consume).
      */
     public InventoryItem removeInventory(InventoryRequest request) throws AuditLoggingException {
-        String itemId = request.getItemId();
+        String deviceId = request.getDeviceId();
         int quantity = request.getQuantity();
         String userId = request.getUserId();
         String reason = request.getReason();
         
-        InventoryItem item = inventory.get(itemId);
+        InventoryItem item = inventory.get(deviceId);
         if (item == null) {
-            // Item doesn't exist - log failure
+            // Device doesn't exist - log failure
             auditLogger.logFailure(
-                "INVENTORY_REMOVE",
+                "MEDICAL_DEVICE_REMOVE",
                 "REMOVE",
-                "inventory/" + itemId,
-                "Item not found: " + itemId
+                "medical-devices/" + deviceId,
+                "Medical device not found: " + deviceId
             );
-            throw new IllegalArgumentException("Item not found: " + itemId);
+            throw new IllegalArgumentException("Medical device not found: " + deviceId);
         }
         
         if (item.getQuantity() < quantity) {
             // Insufficient quantity - log failure
             auditLogger.logFailure(
-                "INVENTORY_REMOVE",
+                "MEDICAL_DEVICE_REMOVE",
                 "REMOVE",
-                "inventory/" + itemId,
+                "medical-devices/" + deviceId,
                 "Insufficient quantity. Available: " + item.getQuantity() + ", Requested: " + quantity
             );
             throw new IllegalArgumentException("Insufficient quantity. Available: " + item.getQuantity() + ", Requested: " + quantity);
@@ -138,7 +141,7 @@ public class InventoryService {
         // Update quantity
         int oldQuantity = item.getQuantity();
         item.setQuantity(oldQuantity - quantity);
-        inventory.put(itemId, item);
+        inventory.put(deviceId, item);
         
         // Log successful removal
         Map<String, Object> details = new HashMap<>();
@@ -146,15 +149,17 @@ public class InventoryService {
         details.put("removed_quantity", quantity);
         details.put("new_quantity", item.getQuantity());
         details.put("reason", reason);
+        details.put("patient_id", request.getPatientId());
+        details.put("department", request.getDepartment());
         
         AuditEvent auditEvent = AuditEvent.builder()
-                .eventType("INVENTORY_REMOVE")
+                .eventType("MEDICAL_DEVICE_REMOVE")
                 .userId(userId)
                 .sessionId(UUID.randomUUID().toString())
-                .application("InventoryManagement")
+                .application("MedicalDeviceInventory")
                 .component("InventoryService")
                 .action("REMOVE")
-                .resource("inventory/" + itemId)
+                .resource("medical-devices/" + deviceId)
                 .result(AuditResult.SUCCESS)
                 .message("Removed " + quantity + " units of " + item.getName())
                 .details(details)
@@ -167,43 +172,43 @@ public class InventoryService {
     }
     
     /**
-     * Get inventory item details.
+     * Get medical device details.
      */
-    public InventoryItem getInventory(String itemId, String userId) throws AuditLoggingException {
-        InventoryItem item = inventory.get(itemId);
+    public InventoryItem getInventory(String deviceId, String userId) throws AuditLoggingException {
+        InventoryItem item = inventory.get(deviceId);
         
         if (item == null) {
-            // Item not found - log failure
+            // Device not found - log failure
             auditLogger.logFailure(
-                "INVENTORY_VIEW",
+                "MEDICAL_DEVICE_VIEW",
                 "VIEW",
-                "inventory/" + itemId,
-                "Item not found: " + itemId
+                "medical-devices/" + deviceId,
+                "Medical device not found: " + deviceId
             );
-            throw new IllegalArgumentException("Item not found: " + itemId);
+            throw new IllegalArgumentException("Medical device not found: " + deviceId);
         }
         
         // Log successful view
         auditLogger.logSuccess(
-            "INVENTORY_VIEW",
+            "MEDICAL_DEVICE_VIEW",
             "VIEW",
-            "inventory/" + itemId,
-            "User " + userId + " viewed item: " + item.getName()
+            "medical-devices/" + deviceId,
+            "User " + userId + " viewed medical device: " + item.getName()
         );
         
         return item;
     }
     
     /**
-     * Get all inventory items.
+     * Get all medical devices in inventory.
      */
     public Map<String, InventoryItem> getAllInventory(String userId) throws AuditLoggingException {
         // Log successful view of all inventory
         auditLogger.logSuccess(
-            "INVENTORY_VIEW_ALL",
+            "MEDICAL_DEVICE_VIEW_ALL",
             "VIEW_ALL",
-            "inventory",
-            "User " + userId + " viewed all inventory items"
+            "medical-devices",
+            "User " + userId + " viewed all medical device inventory items"
         );
         
         return new HashMap<>(inventory);

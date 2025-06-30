@@ -1,14 +1,15 @@
-# Inventory Management with Audit Logging
+# Medical Device Inventory Management with Audit Logging
 
-A simple Spring Boot 2 (Java 8) application demonstrating inventory management with comprehensive audit logging.
+A Spring Boot 2 (Java 8) application demonstrating medical device inventory management with comprehensive audit logging.
 
 ## Features
 
 - **Spring Boot 2** with Java 8
-- **REST API** for inventory operations
+- **REST API** for medical device inventory operations
 - **Audit Logging** for all operations using the v1 audit library
 - **Simple Architecture**: Controller → Service → Model
-- **In-Memory Storage** with sample inventory data
+- **In-Memory Storage** with sample medical device inventory data
+- **Medical Device Specific Fields**: Manufacturer, model number, expiration date, status
 
 ## Architecture
 
@@ -23,21 +24,22 @@ Model (Data Objects)
 ## API Endpoints
 
 ### Health Check
-- `GET /api/inventory/health` - Service health check
+- `GET /api/medical-devices/health` - Service health check
 
-### Inventory Operations
-- `GET /api/inventory` - Get all inventory items
-- `GET /api/inventory/{itemId}` - Get specific item
-- `POST /api/inventory/add` - Add items to inventory (restock)
-- `POST /api/inventory/remove` - Remove items from inventory (checkout)
+### Medical Device Operations
+- `GET /api/medical-devices` - Get all medical devices
+- `GET /api/medical-devices/{deviceId}` - Get specific medical device
+- `POST /api/medical-devices/add` - Add medical devices to inventory (restock)
+- `POST /api/medical-devices/remove` - Remove medical devices from inventory (checkout)
 
-## Sample Inventory
+## Sample Medical Device Inventory
 
-The application starts with sample inventory:
-- **LAPTOP-001**: Dell XPS 13 (5 units, Electronics, Warehouse A)
-- **MOUSE-001**: Wireless Mouse (20 units, Electronics, Warehouse B)
-- **DESK-001**: Standing Desk (3 units, Furniture, Warehouse A)
-- **CHAIR-001**: Ergonomic Chair (8 units, Furniture, Warehouse B)
+The application starts with sample medical device inventory:
+- **VENT-001**: Ventilator (3 units, Respiratory, ICU Ward A, Philips V60)
+- **MONITOR-001**: Patient Monitor (8 units, Monitoring, ER Department, GE Healthcare B650)
+- **DEFIB-001**: Defibrillator (5 units, Emergency, Emergency Room, Zoll X Series)
+- **PUMP-001**: Infusion Pump (12 units, Infusion, Med-Surg Unit, Baxter Sigma Spectrum)
+- **XRAY-001**: X-Ray Machine (2 units, Imaging, Radiology, Siemens Ysio Max)
 
 ## Running the Application
 
@@ -54,49 +56,53 @@ The application will start on `http://localhost:8080`
 
 ## Example API Calls
 
-### Get all inventory
+### Get all medical devices
 ```bash
-curl http://localhost:8080/api/inventory
+curl http://localhost:8080/api/medical-devices
 ```
 
-### Get specific item
+### Get specific medical device
 ```bash
-curl http://localhost:8080/api/inventory/LAPTOP-001
+curl http://localhost:8080/api/medical-devices/VENT-001
 ```
 
-### Add inventory (restock)
+### Add medical devices (restock)
 ```bash
-curl -X POST http://localhost:8080/api/inventory/add \
+curl -X POST http://localhost:8080/api/medical-devices/add \
   -H "Content-Type: application/json" \
   -d '{
-    "item_id": "LAPTOP-001",
+    "device_id": "VENT-001",
     "quantity": 2,
-    "user_id": "alice@company.com",
-    "reason": "New shipment received"
+    "user_id": "dr.smith@hospital.com",
+    "reason": "New shipment received",
+    "patient_id": null,
+    "department": "ICU"
   }'
 ```
 
-### Remove inventory (checkout)
+### Remove medical devices (checkout)
 ```bash
-curl -X POST http://localhost:8080/api/inventory/remove \
+curl -X POST http://localhost:8080/api/medical-devices/remove \
   -H "Content-Type: application/json" \
   -d '{
-    "item_id": "LAPTOP-001",
+    "device_id": "VENT-001",
     "quantity": 1,
-    "user_id": "bob@company.com",
-    "reason": "New employee setup"
+    "user_id": "nurse.jones@hospital.com",
+    "reason": "Patient care - Room 301",
+    "patient_id": "PAT-12345",
+    "department": "ICU"
   }'
 ```
 
 ## Audit Logs
 
-All operations are logged to `./inventory-audit-logs/audit.log` in JSON format. Each log entry includes:
+All operations are logged to `./medical-device-audit-logs/audit.log` in JSON format. Each log entry includes:
 - Timestamp
 - User ID
 - Action performed
 - Resource accessed
 - Result (success/failure)
-- Additional details
+- Additional details including patient ID and department
 
 ## Prerequisites
 
