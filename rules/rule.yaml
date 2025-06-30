@@ -7,7 +7,7 @@
     java.dependency:
       name: com.enterprise.audit-logging-library
       lowerbound: "1.0.0" 
-      upperbound: "2.0.0" 
+      upperbound: "1.9" 
   message: The `audit-logging-library` version {{dependency.version}} is outdated. Please upgrade to 2.0.0.
   labels:
     - konveyor.io/source=openjdk8
