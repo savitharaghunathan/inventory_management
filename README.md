@@ -88,8 +88,8 @@ curl -X POST http://localhost:8080/api/medical-devices/remove \
     "device_id": "VENT-001",
     "quantity": 1,
     "user_id": "nurse.jones@hospital.com",
-    "reason": "Patient care - Room 301",
-    "patient_id": "PAT-12345",
+    "reason": "Device retired",
+    "patient_id": null,
     "department": "ICU"
   }'
 ```
