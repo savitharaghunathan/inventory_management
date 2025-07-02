@@ -17,8 +17,8 @@
     <version>2.0.0</version>
     <packaging>jar</packaging>
     
-    <name>Inventory Management</name>
-    <description>Spring Boot 3 inventory management with audit logging v2</description>
+    <name>Medical Device Inventory Management</name>
+    <description>Spring Boot 3 medical device inventory management with audit logging v2</description>
     
     <properties>
         <maven.compiler.source>21</maven.compiler.source>

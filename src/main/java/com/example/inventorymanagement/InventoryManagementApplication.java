@@ -4,7 +4,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
- * Simple Spring Boot 2 inventory management application with audit logging.
+ * Spring Boot 3 medical device inventory management application with audit logging v2.
  */
 @SpringBootApplication
 public class InventoryManagementApplication {

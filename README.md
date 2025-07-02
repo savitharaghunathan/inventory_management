@@ -1,19 +1,20 @@
-# Inventory Management Service
+# Medical Device Inventory Management Service
 
-A Spring Boot application demonstrating enterprise audit logging with the v2 audit library. This service provides inventory management capabilities with comprehensive audit trails for all operations.
+A Spring Boot application demonstrating enterprise audit logging with the v2 audit library. This service provides medical device inventory management capabilities with comprehensive audit trails for all operations.
 
 ## Features
 
-- RESTful API for inventory management 
+- RESTful API for medical device inventory management 
 - Enterprise-grade audit logging using v2 audit library
 - Java 21 with Spring Boot 3
 - TCP streaming to Logstash for audit events
+- Medical device specific fields: manufacturer, model number, expiration date, status
 
 ## Quick Start
 
 ### 1. Start Logstash (Required)
 
-The inventory service requires Logstash to be running for audit logging. Start Logstash first:
+The medical device inventory service requires Logstash to be running for audit logging. Start Logstash first:
 
 ```bash
 # Using Podman (recommended)
@@ -48,75 +49,73 @@ mvn spring-boot:run
 
 The application will start on http://localhost:8080
 
-## API Testing
+## API endpoints
 
-### Get All Inventory Items
+### Medical Device Operations
+- `GET /api/medical-devices` - Get all medical devices
+- `GET /api/medical-devices/{deviceId}` - Get specific medical device
+- `POST /api/medical-devices/add` - Add medical devices to inventory (restock)
+- `POST /api/medical-devices/remove` - Remove medical devices from inventory (checkout)
+
+### Get All Medical Devices
 
 ```bash
-curl -X GET "http://localhost:8080/api/inventory?userId=user123"
+curl -X GET "http://localhost:8080/api/medical-devices?userId=user123"
 ```
 
-### Get Item by ID
+### Get Medical Device by ID
 
 ```bash
-curl -X GET "http://localhost:8080/api/inventory/1?userId=user123"
+curl -X GET "http://localhost:8080/api/medical-devices/VENT-001?userId=user123"
 ```
 
-### Add New Item
+### Add Medical Devices (Restock)
 
 ```bash
-curl -X POST "http://localhost:8080/api/inventory?userId=user123" \
+curl -X POST "http://localhost:8080/api/medical-devices/add" \
   -H "Content-Type: application/json" \
   -d '{
-    "name": "Laptop",
-    "description": "High-performance laptop",
-    "quantity": 10,
-    "price": 999.99
+    "device_id": "VENT-001",
+    "quantity": 2,
+    "user_id": "dr.smith@hospital.com",
+    "reason": "New shipment received",
+    "patient_id": null,
+    "department": "ICU"
   }'
 ```
 
-### Update Item
+### Remove Medical Devices (Checkout)
 
 ```bash
-curl -X PUT "http://localhost:8080/api/inventory/1?userId=user123" \
+curl -X POST "http://localhost:8080/api/medical-devices/remove" \
   -H "Content-Type: application/json" \
   -d '{
-    "name": "Updated Laptop",
-    "description": "Updated description",
-    "quantity": 15,
-    "price": 1099.99
+    "device_id": "VENT-001",
+    "quantity": 1,
+    "user_id": "nurse.jones@hospital.com",
+    "reason": "Device retired",
+    "patient_id": null,
+    "department": "ICU"
   }'
 ```
 
-### Delete Item
+## Sample Medical Device Data
 
-```bash
-curl -X DELETE "http://localhost:8080/api/inventory/1?userId=user123"
-```
+The application comes pre-loaded with sample medical device inventory:
 
-### Search Items by Name
-
-```bash
-curl -X GET "http://localhost:8080/api/inventory/search?name=laptop&userId=user123"
-```
-
-## Sample Data
-
-The application comes pre-loaded with sample inventory items:
-
-- **ID 1:** Laptop - High-performance laptop ($999.99, 10 units)
-- **ID 2:** Mouse - Wireless mouse ($29.99, 50 units)
-- **ID 3:** Keyboard - Mechanical keyboard ($149.99, 25 units)
-- **ID 4:** Monitor - 27" 4K monitor ($399.99, 15 units)
-- **ID 5:** Headphones - Noise-canceling headphones ($199.99, 30 units)
+- **VENT-001:** Ventilator - Philips V60 (3 units, Respiratory, ICU Ward A)
+- **MONITOR-001:** Patient Monitor - GE Healthcare B650 (8 units, Monitoring, ER Department)
+- **DEFIB-001:** Defibrillator - Zoll X Series (5 units, Emergency, Emergency Room)
+- **PUMP-001:** Infusion Pump - Baxter Sigma Spectrum (12 units, Infusion, Med-Surg Unit)
+- **XRAY-001:** X-Ray Machine - Siemens Ysio Max (2 units, Imaging, Radiology)
 
 ## Configuration
 
 The application uses environment variables for configuration:
 
-- `AUDIT_LOGSTASH_HOST`: Logstash host (default: localhost)
-- `AUDIT_LOGSTASH_PORT`: Logstash port (default: 5000)
-- `AUDIT_APP_NAME`: Application name for audit events (default: inventory-management)
+- `AUDIT_STREAM_HOST`: Logstash host (default: localhost)
+- `AUDIT_STREAM_PORT`: Logstash port (default: 5000)
+- `AUDIT_STREAM_PROTOCOL`: Stream protocol (default: tcp)
 
 ## Testing
 
@@ -128,11 +127,11 @@ mvn test
 
 ## Audit Logging
 
-All inventory operations are automatically logged to Logstash with the following information:
+All medical device inventory operations are automatically logged to Logstash with the following information:
 
-- **Event Type:** Operation performed (CREATE, READ, UPDATE, DELETE, SEARCH)
+- **Event Type:** Operation performed (MEDICAL_DEVICE_ADD, MEDICAL_DEVICE_REMOVE, MEDICAL_DEVICE_VIEW, etc.)
 - **User ID:** User performing the operation
-- **Item Details:** Inventory item information
+- **Device Details:** Medical device information including patient ID and department
 - **Timestamp:** When the operation occurred
 - **Result:** Success/failure status
 
@@ -159,5 +158,5 @@ This application demonstrates the v2 audit library patterns. See `MIGRATION_GUID
 ### API Errors
 
 - Ensure you're providing a `userId` parameter in all requests
-- Check that item IDs exist before updating/deleting
-- Verify JSON payload format for POST/PUT requests
+- Check that device IDs exist before updating/deleting
+- Verify JSON payload format for POST requests

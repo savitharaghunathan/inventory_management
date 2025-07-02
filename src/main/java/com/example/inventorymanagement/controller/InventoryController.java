@@ -10,20 +10,20 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 /**
- * REST controller for inventory management operations.
+ * REST controller for medical device inventory management operations.
  */
 @RestController
-@RequestMapping("/api/inventory")
+@RequestMapping("/api/medical-devices")
 public class InventoryController {
     
     @Autowired
     private InventoryService inventoryService;
     
     /**
-     * Get all inventory items.
+     * Get all medical devices in inventory.
      */
     @GetMapping
-    public ResponseEntity<Map<String, InventoryItem>> getAllInventory(
+    public ResponseEntity<Map<String, InventoryItem>> getAllMedicalDevices(
             @RequestParam(defaultValue = "system") String userId) {
         try {
             Map<String, InventoryItem> inventory = inventoryService.getAllInventory(userId);
@@ -34,14 +34,14 @@ public class InventoryController {
     }
     
     /**
-     * Get a specific inventory item.
+     * Get a specific medical device by ID.
      */
-    @GetMapping("/{itemId}")
-    public ResponseEntity<InventoryItem> getInventory(
-            @PathVariable String itemId,
+    @GetMapping("/{deviceId}")
+    public ResponseEntity<InventoryItem> getMedicalDevice(
+            @PathVariable String deviceId,
             @RequestParam(defaultValue = "system") String userId) {
         try {
-            InventoryItem item = inventoryService.getInventory(itemId, userId);
+            InventoryItem item = inventoryService.getInventory(deviceId, userId);
             return ResponseEntity.ok(item);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.notFound().build();
@@ -51,10 +51,10 @@ public class InventoryController {
     }
     
     /**
-     * Add items to inventory (restock).
+     * Add medical devices to inventory (restock).
      */
     @PostMapping("/add")
-    public ResponseEntity<InventoryItem> addInventory(@RequestBody InventoryRequest request) {
+    public ResponseEntity<InventoryItem> addMedicalDevices(@RequestBody InventoryRequest request) {
         try {
             InventoryItem updatedItem = inventoryService.addInventory(request);
             return ResponseEntity.ok(updatedItem);
@@ -66,10 +66,10 @@ public class InventoryController {
     }
     
     /**
-     * Remove items from inventory (checkout/consume).
+     * Remove medical devices from inventory (checkout/consume).
      */
     @PostMapping("/remove")
-    public ResponseEntity<InventoryItem> removeInventory(@RequestBody InventoryRequest request) {
+    public ResponseEntity<InventoryItem> removeMedicalDevices(@RequestBody InventoryRequest request) {
         try {
             InventoryItem updatedItem = inventoryService.removeInventory(request);
             return ResponseEntity.ok(updatedItem);
@@ -85,6 +85,6 @@ public class InventoryController {
      */
     @GetMapping("/health")
     public ResponseEntity<String> health() {
-        return ResponseEntity.ok("Inventory Management Service is running!");
+        return ResponseEntity.ok("Medical Device Inventory Management Service is running!");
     }
 } 
