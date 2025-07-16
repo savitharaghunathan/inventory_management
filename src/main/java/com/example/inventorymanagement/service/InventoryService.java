@@ -71,20 +71,20 @@ public class InventoryService {
         if (item == null) {
             // Device doesn't exist - log failure
             AuditEvent failureEvent = new AuditEvent(
-                Instant.now(),
-                "MEDICAL_DEVICE_ADD",
-                userId,
-                sessionId,
-                "MedicalDeviceInventory",
-                "InventoryService",
-                "ADD",
-                "medical-devices/" + deviceId,
-                AuditResult.FAILURE,
-                "Medical device not found: " + deviceId,
-                null,
-                correlationId,
-                null,
-                null
+                Instant.now(), // timestamp: Instant
+                "MEDICAL_DEVICE_ADD", // event_type: String
+                userId, // user_id: String
+                sessionId, // session_id: String
+                "MedicalDeviceInventory", // application: String
+                "InventoryService", // component: String
+                "ADD", // action: String
+                "medical-devices/" + deviceId, // resource: String
+                AuditResult.FAILURE, // result: AuditResult
+                "Medical device not found: " + deviceId, // message: String
+                null, // details: Map<String, Object>
+                correlationId, // correlation_id: String
+                null, // source_ip: String
+                null // user_agent: String
             );
             auditLogger.logEventAsync(failureEvent);
             throw new IllegalArgumentException("Medical device not found: " + deviceId);
@@ -105,20 +105,20 @@ public class InventoryService {
         details.put("department", request.getDepartment());
         
         AuditEvent auditEvent = new AuditEvent(
-            Instant.now(),
-            "MEDICAL_DEVICE_ADD",
-            userId,
-            sessionId,
-            "MedicalDeviceInventory",
-            "InventoryService",
-            "ADD",
-            "medical-devices/" + deviceId,
-            AuditResult.SUCCESS,
-            "Added " + quantity + " units of " + item.getName(),
-            details,
-            correlationId,
-            null,
-            null
+            Instant.now(), // timestamp: Instant
+            "MEDICAL_DEVICE_ADD", // event_type: String
+            userId, // user_id: String
+            sessionId, // session_id: String
+            "MedicalDeviceInventory", // application: String
+            "InventoryService", // component: String
+            "ADD", // action: String
+            "medical-devices/" + deviceId, // resource: String
+            AuditResult.SUCCESS, // result: AuditResult
+            "Added " + quantity + " units of " + item.getName(), // message: String
+            details, // details: Map<String, Object>
+            correlationId, // correlation_id: String
+            null, // source_ip: String
+            null // user_agent: String
         );
         
         auditLogger.logEventAsync(auditEvent);
@@ -141,20 +141,20 @@ public class InventoryService {
         if (item == null) {
             // Device doesn't exist - log failure
             AuditEvent failureEvent = new AuditEvent(
-                Instant.now(),
-                "MEDICAL_DEVICE_REMOVE",
-                userId,
-                sessionId,
-                "MedicalDeviceInventory",
-                "InventoryService",
-                "REMOVE",
-                "medical-devices/" + deviceId,
-                AuditResult.FAILURE,
-                "Medical device not found: " + deviceId,
-                null,
-                correlationId,
-                null,
-                null
+                Instant.now(), // timestamp: Instant
+                "MEDICAL_DEVICE_REMOVE", // event_type: String
+                userId, // user_id: String
+                sessionId, // session_id: String
+                "MedicalDeviceInventory", // application: String
+                "InventoryService", // component: String
+                "REMOVE", // action: String
+                "medical-devices/" + deviceId, // resource: String
+                AuditResult.FAILURE, // result: AuditResult
+                "Medical device not found: " + deviceId, // message: String
+                null, // details: Map<String, Object>
+                correlationId, // correlation_id: String
+                null, // source_ip: String
+                null // user_agent: String
             );
             auditLogger.logEventAsync(failureEvent);
             throw new IllegalArgumentException("Medical device not found: " + deviceId);
@@ -163,20 +163,20 @@ public class InventoryService {
         if (item.getQuantity() < quantity) {
             // Insufficient quantity - log failure
             AuditEvent failureEvent = new AuditEvent(
-                Instant.now(),
-                "MEDICAL_DEVICE_REMOVE",
-                userId,
-                sessionId,
-                "MedicalDeviceInventory",
-                "InventoryService",
-                "REMOVE",
-                "medical-devices/" + deviceId,
-                AuditResult.FAILURE,
-                "Insufficient quantity. Available: " + item.getQuantity() + ", Requested: " + quantity,
-                null,
-                correlationId,
-                null,
-                null
+                Instant.now(), // timestamp: Instant
+                "MEDICAL_DEVICE_REMOVE", // event_type: String
+                userId, // user_id: String
+                sessionId, // session_id: String
+                "MedicalDeviceInventory", // application: String
+                "InventoryService", // component: String
+                "REMOVE", // action: String
+                "medical-devices/" + deviceId, // resource: String
+                AuditResult.FAILURE, // result: AuditResult
+                "Insufficient quantity. Available: " + item.getQuantity() + ", Requested: " + quantity, // message: String
+                null, // details: Map<String, Object>
+                correlationId, // correlation_id: String
+                null, // source_ip: String
+                null // user_agent: String
             );
             auditLogger.logEventAsync(failureEvent);
             throw new IllegalArgumentException("Insufficient quantity. Available: " + item.getQuantity() + ", Requested: " + quantity);
@@ -197,20 +197,20 @@ public class InventoryService {
         details.put("department", request.getDepartment());
         
         AuditEvent auditEvent = new AuditEvent(
-            Instant.now(),
-            "MEDICAL_DEVICE_REMOVE",
-            userId,
-            sessionId,
-            "MedicalDeviceInventory",
-            "InventoryService",
-            "REMOVE",
-            "medical-devices/" + deviceId,
-            AuditResult.SUCCESS,
-            "Removed " + quantity + " units of " + item.getName(),
-            details,
-            correlationId,
-            null,
-            null
+            Instant.now(), // timestamp: Instant
+            "MEDICAL_DEVICE_REMOVE", // event_type: String
+            userId, // user_id: String
+            sessionId, // session_id: String
+            "MedicalDeviceInventory", // application: String
+            "InventoryService", // component: String
+            "REMOVE", // action: String
+            "medical-devices/" + deviceId, // resource: String
+            AuditResult.SUCCESS, // result: AuditResult
+            "Removed " + quantity + " units of " + item.getName(), // message: String
+            details, // details: Map<String, Object>
+            correlationId, // correlation_id: String
+            null, // source_ip: String
+            null // user_agent: String
         );
         
         auditLogger.logEventAsync(auditEvent);
@@ -230,20 +230,20 @@ public class InventoryService {
         if (item == null) {
             // Device not found - log failure
             AuditEvent failureEvent = new AuditEvent(
-                Instant.now(),
-                "MEDICAL_DEVICE_VIEW",
-                userId,
-                sessionId,
-                "MedicalDeviceInventory",
-                "InventoryService",
-                "VIEW",
-                "medical-devices/" + deviceId,
-                AuditResult.FAILURE,
-                "Medical device not found: " + deviceId,
-                null,
-                correlationId,
-                null,
-                null
+                Instant.now(), // timestamp: Instant
+                "MEDICAL_DEVICE_VIEW", // event_type: String
+                userId, // user_id: String
+                sessionId, // session_id: String
+                "MedicalDeviceInventory", // application: String
+                "InventoryService", // component: String
+                "VIEW", // action: String
+                "medical-devices/" + deviceId, // resource: String
+                AuditResult.FAILURE, // result: AuditResult
+                "Medical device not found: " + deviceId, // message: String
+                null, // details: Map<String, Object>
+                correlationId, // correlation_id: String
+                null, // source_ip: String
+                null // user_agent: String
             );
             auditLogger.logEventAsync(failureEvent);
             throw new IllegalArgumentException("Medical device not found: " + deviceId);
@@ -251,20 +251,20 @@ public class InventoryService {
         
         // Log successful view
         AuditEvent successEvent = new AuditEvent(
-            Instant.now(),
-            "MEDICAL_DEVICE_VIEW",
-            userId,
-            sessionId,
-            "MedicalDeviceInventory",
-            "InventoryService",
-            "VIEW",
-            "medical-devices/" + deviceId,
-            AuditResult.SUCCESS,
-            "User " + userId + " viewed medical device: " + item.getName(),
-            null,
-            correlationId,
-            null,
-            null
+            Instant.now(), // timestamp: Instant
+            "MEDICAL_DEVICE_VIEW", // event_type: String
+            userId, // user_id: String
+            sessionId, // session_id: String
+            "MedicalDeviceInventory", // application: String
+            "InventoryService", // component: String
+            "VIEW", // action: String
+            "medical-devices/" + deviceId, // resource: String
+            AuditResult.SUCCESS, // result: AuditResult
+            "User " + userId + " viewed medical device: " + item.getName(), // message: String
+            null, // details: Map<String, Object>
+            correlationId, // correlation_id: String
+            null, // source_ip: String
+            null // user_agent: String
         );
         auditLogger.logEventAsync(successEvent);
         
@@ -280,20 +280,20 @@ public class InventoryService {
         
         // Log successful view of all inventory
         AuditEvent successEvent = new AuditEvent(
-            Instant.now(),
-            "MEDICAL_DEVICE_VIEW_ALL",
-            userId,
-            sessionId,
-            "MedicalDeviceInventory",
-            "InventoryService",
-            "VIEW_ALL",
-            "medical-devices",
-            AuditResult.SUCCESS,
-            "User " + userId + " viewed all medical device inventory items",
-            null,
-            correlationId,
-            null,
-            null
+            Instant.now(), // timestamp: Instant
+            "MEDICAL_DEVICE_VIEW_ALL", // event_type: String
+            userId, // user_id: String
+            sessionId, // session_id: String
+            "MedicalDeviceInventory", // application: String
+            "InventoryService", // component: String
+            "VIEW_ALL", // action: String
+            "medical-devices", // resource: String
+            AuditResult.SUCCESS, // result: AuditResult
+            "User " + userId + " viewed all medical device inventory items", // message: String
+            null, // details: Map<String, Object>
+            correlationId, // correlation_id: String
+            null, // source_ip: String
+            null // user_agent: String
         );
         auditLogger.logEventAsync(successEvent);
         
