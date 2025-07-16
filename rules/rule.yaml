@@ -8,7 +8,7 @@
       name: com.enterprise.audit-logging-library
       lowerbound: "1.0.0" 
       upperbound: "1.9" 
-  message: The `audit-logging-library` version {{dependency.version}} is outdated. Please upgrade to 2.0.0.
+  message: The `audit-logging-library` version {{dependency.version}} is outdated. Please upgrade to 2.0.0. update java version to 21
   labels:
     - konveyor.io/source=openjdk8
     - konveyor.io/target=openjdk21
@@ -19,8 +19,8 @@
   effort: 3
   when:
     java.referenced:
-      pattern: com.enterprise.audit.logging.model.AuditEvent.builder
-      location: IMPORT
+      pattern: builder
+      location: METHOD_CALL
   message: The `AuditEvent.builder()` pattern is deprecated. Instantiate the `AuditEvent` record directly (e.g. `new AuditEvent(...)`).
   labels:
     - konveyor.io/source=openjdk8
@@ -45,7 +45,7 @@
   effort: 3
   when:
     java.referenced:
-      pattern: com.enterprise.audit.logging.service.FileSystemAuditLogger.logEvent
+      pattern: logEvent
       location: METHOD_CALL
   message: The synchronous `logEvent(event)` method should be replaced. Use the non-blocking `logEventAsync(event)` for better performance.
   labels:
@@ -59,10 +59,10 @@
   when:
     or:
       - java.referenced:
-          pattern: com.enterprise.audit.logging.service.FileSystemAuditLogger.logSuccess
+          pattern: logSuccess
           location: METHOD_CALL
       - java.referenced:
-          pattern: com.enterprise.audit.logging.service.FileSystemAuditLogger.logFailure
+          pattern: logFailure
           location: METHOD_CALL
   message: Legacy convenience methods (logSuccess, logFailure) are removed. Construct a full `AuditEvent` record and use logEventAsync instead.
   labels:
