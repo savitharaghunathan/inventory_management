@@ -4,13 +4,13 @@ import com.enterprise.audit.logging.config.AuditConfiguration;
 import com.enterprise.audit.logging.exception.AuditLoggingException;
 import com.enterprise.audit.logging.model.AuditEvent;
 import com.enterprise.audit.logging.model.AuditResult;
-import com.enterprise.audit.logging.service.StreamableAuditLogger;
+import com.enterprise.audit.logging.service.FileSystemAuditLogger;
 import com.example.inventorymanagement.model.InventoryItem;
 import com.example.inventorymanagement.model.InventoryRequest;
 import org.springframework.stereotype.Service;
 
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
@@ -28,13 +28,13 @@ public class InventoryService {
     
     @PostConstruct
     public void init() throws AuditLoggingException {
-        // Initialize audit logger with environment-based configuration (only if not already set)
+
         if (auditLogger == null) {
             AuditConfiguration config = new AuditConfiguration();
-            config.setStreamHost(System.getenv().getOrDefault("AUDIT_STREAM_HOST", "localhost"));
-            config.setStreamPort(Integer.parseInt(System.getenv().getOrDefault("AUDIT_STREAM_PORT", "5000")));
-            config.setStreamProtocol(System.getenv().getOrDefault("AUDIT_STREAM_PROTOCOL", "tcp"));
-            auditLogger = new StreamableAuditLogger(config);
+            config.setLogDirectory("./device-inventory-audit-logs");
+            config.setAutoCreateDirectory(true);
+            auditLogger = new FileSystemAuditLogger(config);
+            
         }
         
         // Initialize with some sample medical device inventory
