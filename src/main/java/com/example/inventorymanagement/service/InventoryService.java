@@ -23,7 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class InventoryService {
     
-    private StreamableAuditLogger auditLogger;
+    private FileSystemAuditLogger auditLogger;
     private final Map<String, InventoryItem> inventory = new ConcurrentHashMap<>();
     
     @PostConstruct
